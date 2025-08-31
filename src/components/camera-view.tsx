@@ -18,6 +18,7 @@ import {
   Facebook,
   Loader2,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 type CameraViewProps = {
   scene: string | null;
@@ -48,16 +49,9 @@ export function CameraView({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="aspect-w-16 aspect-h-9 w-full rounded-lg overflow-hidden bg-muted relative border-4 border-secondary shadow-inner">
+        <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted relative border-4 border-secondary shadow-inner">
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground z-0">
-            {scene ? (
-              isLoading ? (
-                <div className="text-center">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                  <p className="mt-4">Loading Scene...</p>
-                </div>
-              ) : null
-            ) : (
+            {!scene && (
               <div className="text-center">
                 <Camera className="h-16 w-16 mx-auto" />
                 <p className="mt-2">Select a mood to begin</p>

@@ -27,21 +27,6 @@ export async function generateAIScene(input: GenerateAISceneInput): Promise<Gene
   return generateAISceneFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateAIScenePrompt',
-  input: {schema: GenerateAISceneInputSchema},
-  output: {schema: GenerateAISceneOutputSchema},
-  prompt: `You are an AI scene generator. You will generate either an image or a video scene based on the user's chosen mood.
-
-Mood: {{{mood}}}
-Scene Description: {{{sceneDescription}}}
-Type: {{{type}}}
-
-Generate a scene suitable for use as a backdrop, reflecting the specified mood. If the type is video, make it a short, looping video.
-
-Ensure the output is a data URI.`, // make sure to return a data URI
-});
-
 const generateAISceneFlow = ai.defineFlow(
   {
     name: 'generateAISceneFlow',
@@ -82,12 +67,27 @@ const generateAISceneFlow = ai.defineFlow(
       }
 
       const video = operation.output?.message?.content.find(p => !!p.media);
-      if (!video) {
+      if (!video || !video.media?.url) {
         throw new Error('Failed to find the generated video');
       }
 
-      //console.log(video.media!.url)
-      return {sceneDataUri: video.media!.url!};
+      const fetch = (await import('node-fetch')).default;
+      const videoDownloadResponse = await fetch(
+        `${video.media.url}&key=${process.env.GEMINI_API_KEY}`
+      );
+      if (
+        !videoDownloadResponse ||
+        videoDownloadResponse.status !== 200 ||
+        !videoDownloadResponse.body
+      ) {
+        throw new Error('Failed to fetch video');
+      }
+      const buffer = await videoDownloadResponse.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const contentType =
+        video.media.contentType || videoDownloadResponse.headers.get('content-type') || 'video/mp4';
+
+      return {sceneDataUri: `data:${contentType};base64,${base64}`};
     }
   }
 );
