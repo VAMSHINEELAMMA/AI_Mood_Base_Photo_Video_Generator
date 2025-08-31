@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/ai-scene-generation.ts';
+import '@/ai/flows/pose-guidance.ts';
+import '@/ai/flows/mood-based-suggestions.ts';
